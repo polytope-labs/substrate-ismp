@@ -9,7 +9,8 @@ targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
 sp-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.42", default-features = false }
+primitive-types = { version = "0.12.1", default-features = false }
 
 [features]
-default = ["std"]
+default = ["std", "primitive-types/std"]
 std = ["sp-api/std"]

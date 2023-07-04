@@ -22,6 +22,7 @@ use crate::{
 use alloc::{format, string::ToString};
 use core::time::Duration;
 use frame_support::traits::{Get, UnixTime};
+use ismp_primitives::RelayChainOracle;
 use ismp_rs::{
     consensus::{
         ConsensusClient, ConsensusClientId, StateCommitment, StateMachineHeight, StateMachineId,
@@ -61,7 +62,17 @@ where
         &self,
         height: StateMachineHeight,
     ) -> Result<StateCommitment, Error> {
-        StateCommitments::<T>::get(height).ok_or_else(|| Error::StateCommitmentNotFound { height })
+        match height.id.state_id {
+            // is this request to the relay chain?
+            StateMachine::Kusama(0) | StateMachine::Polkadot(0) => {
+                let state_root = T::RelayChainOracle::state_root(height.height as u32)
+                    .ok_or_else(|| Error::StateCommitmentNotFound { height })?;
+
+                Ok(StateCommitment { timestamp: 0, overlay_root: None, state_root })
+            }
+            _ => StateCommitments::<T>::get(height)
+                .ok_or_else(|| Error::StateCommitmentNotFound { height }),
+        }
     }
 
     fn consensus_update_time(&self, id: ConsensusClientId) -> Result<Duration, Error> {

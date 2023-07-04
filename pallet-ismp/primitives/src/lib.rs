@@ -19,6 +19,10 @@
 #![deny(missing_docs)]
 
 //! Primitives for the MMR implementation
+use cumulus_primitives_core::{
+    relay_chain,
+    relay_chain::{BlockNumber, Hash},
+};
 use ismp::host::StateMachine;
 
 pub mod mmr;
@@ -33,4 +37,23 @@ pub struct LeafIndexQuery {
     pub dest_chain: StateMachine,
     /// The request nonce
     pub nonce: u64,
+}
+
+/// Interface that exposes the relay chain state roots.
+pub trait RelayChainOracle {
+    /// Returns the state root for a given height if it exists.
+    fn state_root(height: relay_chain::BlockNumber) -> Option<relay_chain::Hash>;
+
+    /// Returns the highest known relay chain height
+    fn latest_relay_height() -> Option<u32>;
+}
+
+impl RelayChainOracle for () {
+    fn state_root(_height: BlockNumber) -> Option<Hash> {
+        None
+    }
+
+    fn latest_relay_height() -> Option<u32> {
+        None
+    }
 }

@@ -21,11 +21,15 @@
 extern crate alloc;
 
 use alloc::vec::Vec;
+use primitive_types::H256;
 
 sp_api::decl_runtime_apis! {
     /// Ismp Parachain Runtime Apis
     pub trait IsmpParachainApi {
         /// Return all the para_ids this runtime is interested in. Used by the inherent provider
         fn para_ids() -> Vec<u32>;
+
+        /// Return a known relay chain storage root for a given height.
+        fn relay_chain_state_root(height: u32) -> Option<H256>;
     }
 }

@@ -78,7 +78,10 @@ pub mod pallet {
     use alloc::collections::BTreeSet;
     use frame_support::{pallet_prelude::*, traits::UnixTime};
     use frame_system::pallet_prelude::*;
-    use ismp_primitives::mmr::{LeafIndex, NodeIndex};
+    use ismp_primitives::{
+        mmr::{LeafIndex, NodeIndex},
+        RelayChainOracle,
+    };
     use ismp_rs::{
         consensus::{ConsensusClientId, StateCommitment, StateMachineHeight, StateMachineId},
         handlers::{self},
@@ -122,6 +125,9 @@ pub mod pallet {
 
         /// Weight Info
         type WeightInfo: WeightInfo;
+
+        /// Optional Relay chain oracle.
+        type RelayChainOracle: RelayChainOracle;
 
         /// Weight provider for consensus clients and module callbacks
         type WeightProvider: WeightProvider;

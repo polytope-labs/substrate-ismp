@@ -47,8 +47,8 @@ use crate::RelayChainOracle;
 /// The parachain consensus client implementation for ISMP.
 pub struct ParachainConsensusClient<T, R>(PhantomData<(T, R)>);
 
-/// The parachain state machine implementation for ISMP.
-pub struct ParachainStateMachine<T>(PhantomData<T>);
+/// The substrate state machine implementation for ISMP.
+pub struct SubstrateStateMachine<T>(PhantomData<T>);
 
 impl<T, R> Default for ParachainConsensusClient<T, R> {
     fn default() -> Self {
@@ -56,7 +56,7 @@ impl<T, R> Default for ParachainConsensusClient<T, R> {
     }
 }
 
-impl<T> Default for ParachainStateMachine<T> {
+impl<T> Default for SubstrateStateMachine<T> {
     fn default() -> Self {
         Self(PhantomData)
     }
@@ -249,11 +249,11 @@ where
     }
 
     fn state_machine(&self, _id: StateMachine) -> Result<Box<dyn StateMachineClient>, Error> {
-        Ok(Box::new(ParachainStateMachine::<T>::default()))
+        Ok(Box::new(SubstrateStateMachine::<T>::default()))
     }
 }
 
-impl<T> StateMachineClient for ParachainStateMachine<T>
+impl<T> StateMachineClient for SubstrateStateMachine<T>
 where
     T: pallet_ismp::Config + super::Config,
     T::BlockNumber: Into<u32>,

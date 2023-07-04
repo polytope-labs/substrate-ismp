@@ -20,6 +20,7 @@
 
 use ismp_rs::{
     consensus::{ConsensusClientId, StateMachineId},
+    host::StateMachine,
     router::{Get, Request, Response},
 };
 use pallet_ismp::primitives::{Error, Proof};
@@ -34,6 +35,9 @@ use sp_std::vec::Vec;
 sp_api::decl_runtime_apis! {
     /// ISMP Runtime Apis
     pub trait IsmpRuntimeApi<Hash: codec::Codec> {
+        /// Return the host state machine
+        fn host_state_machine() -> StateMachine;
+
         /// Return the number of MMR leaves.
         fn mmr_leaf_count() -> Result<LeafIndex, Error>;
 

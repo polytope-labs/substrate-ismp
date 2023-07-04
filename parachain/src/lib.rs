@@ -27,16 +27,16 @@ pub mod consensus;
 use alloc::{vec, vec::Vec};
 use cumulus_primitives_core::relay_chain;
 use ismp::{handlers, messaging::CreateConsensusClient};
+use ismp_primitives::RelayChainOracle;
 pub use pallet::*;
 use pallet_ismp::host::Host;
 
 #[frame_support::pallet]
 pub mod pallet {
     use super::*;
-    use cumulus_primitives_core::relay_chain;
     use frame_support::pallet_prelude::*;
     use frame_system::pallet_prelude::*;
-    use ismp::messaging::{ConsensusMessage, Message};
+    use ismp::messaging::Message;
     use parachain_system::{RelaychainDataProvider, RelaychainStateProvider};
     use primitive_types::H256;
 
@@ -58,9 +58,13 @@ pub mod pallet {
     pub type RelayChainState<T: Config> =
         StorageMap<_, Blake2_128Concat, relay_chain::BlockNumber, relay_chain::Hash, OptionQuery>;
 
-    /// Tracks whether we've already seen the `update_parachain_consensus` inherent
+    /// Tracks the highest known relay chain height.
     #[pallet::storage]
-    pub type ConsensusUpdated<T: Config> = StorageValue<_, bool>;
+    pub type LatestRelayHeight<T: Config> = StorageValue<_, u32>;
+
+    /// Tracks whether we've already seen the `handle` inherent
+    #[pallet::storage]
+    pub type InherentUpdated<T: Config> = StorageValue<_, bool>;
 
     /// List of parachains who's headers will be inserted in the `update_parachain_consensus`
     /// inherent
@@ -81,23 +85,14 @@ pub mod pallet {
         /// updates as an inherent.
         #[pallet::call_index(0)]
         #[pallet::weight((0, DispatchClass::Mandatory))]
-        pub fn update_parachain_consensus(
-            origin: OriginFor<T>,
-            data: ConsensusMessage,
-        ) -> DispatchResultWithPostInfo {
+        pub fn handle(origin: OriginFor<T>, messages: Vec<Message>) -> DispatchResultWithPostInfo {
             ensure_none(origin)?;
             assert!(
-                !<ConsensusUpdated<T>>::exists(),
+                !<InherentUpdated<T>>::exists(),
                 "ValidationData must be updated only once in a block",
             );
 
-            assert_eq!(
-                data.consensus_client_id,
-                consensus::PARACHAIN_CONSENSUS_ID,
-                "Only parachain consensus updates should be passed in the inherents!"
-            );
-
-            pallet_ismp::Pallet::<T>::handle_messages(vec![Message::Consensus(data)])?;
+            pallet_ismp::Pallet::<T>::handle_messages(messages)?;
 
             Ok(Pays::No.into())
         }
@@ -134,19 +129,13 @@ pub mod pallet {
             let state = RelaychainDataProvider::<T>::current_relay_chain_state();
             if !RelayChainState::<T>::contains_key(state.number) {
                 RelayChainState::<T>::insert(state.number, state.state_root);
-
-                let digest = sp_runtime::generic::DigestItem::Consensus(
-                    consensus::PARACHAIN_CONSENSUS_ID,
-                    state.number.encode(),
-                );
-
-                <frame_system::Pallet<T>>::deposit_log(digest);
+                LatestRelayHeight::<T>::put(state.number);
             }
         }
 
         fn on_initialize(_n: T::BlockNumber) -> Weight {
             // kill the storage, since this is the beginning of a new block.
-            ConsensusUpdated::<T>::kill();
+            InherentUpdated::<T>::kill();
 
             Weight::from_parts(0, 0)
         }
@@ -165,14 +154,14 @@ pub mod pallet {
         const INHERENT_IDENTIFIER: InherentIdentifier = INHERENT_IDENTIFIER;
 
         fn create_inherent(data: &InherentData) -> Option<Self::Call> {
-            let data: ConsensusMessage =
+            let messages: Vec<Message> =
                 data.get_data(&Self::INHERENT_IDENTIFIER).ok().flatten()?;
 
-            Some(Call::update_parachain_consensus { data })
+            Some(Call::handle { messages })
         }
 
         fn is_inherent(call: &Self::Call) -> bool {
-            matches!(call, Call::update_parachain_consensus { .. })
+            matches!(call, Call::handle { .. })
         }
     }
 
@@ -223,14 +212,12 @@ impl<T: Config> Pallet<T> {
     }
 }
 
-/// Interface that exposes the relay chain state roots.
-pub trait RelayChainOracle {
-    /// Returns the state root for a given height if it exists.
-    fn state_root(height: relay_chain::BlockNumber) -> Option<relay_chain::Hash>;
-}
-
 impl<T: Config> RelayChainOracle for Pallet<T> {
     fn state_root(height: relay_chain::BlockNumber) -> Option<relay_chain::Hash> {
         RelayChainState::<T>::get(height)
+    }
+
+    fn latest_relay_height() -> Option<u32> {
+        LatestRelayHeight::<T>::get()
     }
 }

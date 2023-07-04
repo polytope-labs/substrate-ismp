@@ -8,6 +8,7 @@ authors = ["Polytope Labs <hello@polytope.technology>"]
 # substrate
 frame-system = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.42", default-features = false }
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.42", default-features = false }
+cumulus-primitives-core = { git = "https://github.com/paritytech/cumulus", branch = "release-v0.9.420", default-features = false }
 
 # polytope labs
 ismp = { git = "https://github.com/polytope-labs/ismp-rs", branch = "main", default-features = false }
@@ -29,5 +30,6 @@ std = [
     "sp-runtime/std",
     "primitive-types/std",
     "scale-info/std",
+    "cumulus-primitives-core/std",
     "serde"
 ]

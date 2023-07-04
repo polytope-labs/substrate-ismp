@@ -109,6 +109,7 @@ impl Config for Test {
     type TimeProvider = Timestamp;
     type IsmpRouter = ModuleRouter;
     type ConsensusClientProvider = ConsensusProvider;
+    type RelayChainOracle = ();
     type WeightInfo = ();
     type WeightProvider = ();
 }

@@ -3089,7 +3089,11 @@ dependencies = [
  "ismp",
  "ismp-parachain",
  "ismp-parachain-runtime-api",
+ "ismp-primitives",
+ "ismp-runtime-api",
+ "pallet-ismp",
  "parity-scale-codec",
+ "primitive-types",
  "sp-api",
  "sp-blockchain",
  "sp-inherents",
@@ -3100,6 +3104,7 @@ dependencies = [
 name = "ismp-parachain-runtime-api"
 version = "0.1.0"
 dependencies = [
+ "primitive-types",
  "sp-api",
 ]
 
@@ -3108,6 +3113,7 @@ name = "ismp-primitives"
 version = "0.1.0"
 dependencies = [
  "ckb-merkle-mountain-range",
+ "cumulus-primitives-core",
  "frame-system",
  "ismp",
  "parity-scale-codec",
