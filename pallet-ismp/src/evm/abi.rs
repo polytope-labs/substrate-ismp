@@ -44,7 +44,7 @@ sol! {
 
        struct OptionValue {
             bytes value;
-            bool some;
+            bool isSome;
        }
 
         struct GetResponse {
