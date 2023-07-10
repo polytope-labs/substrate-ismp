@@ -16,6 +16,13 @@ sp-std = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v
 sp-api = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.42", default-features = false }
 pallet-timestamp = { git = "https://github.com/paritytech/substrate", branch = "polkadot-v0.9.42", default-features = false, optional = true }
 
+# EVM support
+pallet-evm = { git = "https://github.com/paritytech/frontier", branch = "polkadot-v0.9.42", default-features = false }
+fp-evm = { git = "https://github.com/paritytech/frontier", branch = "polkadot-v0.9.42", default-features = false }
+alloy-sol-macro = "0.2.0"
+alloy-sol-types = { version = "0.2.0", default-features = false }
+alloy-primitives = { version = "0.2.0", default-features = false }
+
  # polytope labs
 ismp-rs = { package = "ismp", git = "https://github.com/polytope-labs/ismp-rs", branch = "main", default-features = false }
 
@@ -54,7 +61,9 @@ std = [
     "sp-api/std",
     "serde",
     "ismp-primitives/std",
+    "pallet-evm/std"
 ]
+
 
 runtime-benchmarks = [
     "frame-benchmarking/runtime-benchmarks",
