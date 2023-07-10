@@ -52,12 +52,13 @@ where
                 &String::from_utf8(post_dispatch.destChain).unwrap_or_default(),
             )
             .map_err(|e| PrecompileFailure::Error {
-                exit_status: ExitError::Other(format!("Failed to decode input: {:?}", e).into()),
+                exit_status: ExitError::Other(
+                    format!("Failed to destination chain: {:?}", e).into(),
+                ),
             })?,
             from: context.caller.0.to_vec(),
             to: post_dispatch.to,
-            timeout_timestamp: U256::from(post_dispatch.timeoutTimestamp.to_be_bytes::<32>())
-                .low_u64(),
+            timeout_timestamp: u256_to_u64(post_dispatch.timeoutTimestamp)?,
             data: post_dispatch.data,
         };
         handle.record_cost(cost)?;
@@ -147,4 +148,16 @@ where
 
         unimplemented!()
     }
+}
+
+fn u256_to_u64(value: alloy_primitives::U256) -> Result<u64, PrecompileFailure> {
+    let value = U256::from_big_endian(value.to_be_bytes::<32>().as_slice());
+    for i in &value.0[1..] {
+        if *i != 0u64 {
+            return Err(PrecompileFailure::Error {
+                exit_status: ExitError::Other("Integer Overflow".into()),
+            })
+        }
+    }
+    Ok(value.as_u64())
 }
