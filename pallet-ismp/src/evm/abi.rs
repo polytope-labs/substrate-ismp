@@ -2,9 +2,9 @@
 use alloy_sol_macro::sol;
 sol! {
         struct PostRequest {
-            // the source state machine of this request
+            // the source state machine of this request as utf8 string bytes
             bytes source;
-            // the destination state machine of this request
+            // the destination state machine of this request as utf8 string bytes
             bytes dest;
             // request nonce
             uint256 nonce;
@@ -19,9 +19,9 @@ sol! {
         }
 
         struct GetRequest {
-            // the source state machine of this request
+            // the source state machine of this request as utf8 string bytes
             bytes source;
-            // the destination state machine of this request
+            // the destination state machine of this request as utf8 string bytes
             bytes dest;
             // request nonce
             uint256 nonce;
@@ -63,8 +63,8 @@ sol! {
 
         // An object for dispatching post requests to the IsmpDispatcher
         struct DispatchPost {
-            // bytes representation of the destination chain
-            bytes destChain;
+            // bytes representation of the destination chain as utf8 string bytes
+            bytes dest;
             // the destination module
             bytes to;
             // the request body
@@ -75,8 +75,8 @@ sol! {
 
         // An object for dispatching post requests to the IsmpDispatcher
         struct DispatchGet {
-            // bytes representation of the destination chain
-            bytes destChain;
+            // bytes representation of the destination chain as utf8 string bytes
+            bytes dest;
             // Height
             uint256 height;
             // the request body
