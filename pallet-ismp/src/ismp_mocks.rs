@@ -17,7 +17,7 @@ use ismp_rs::{
 pub const MOCK_CONSENSUS_STATE_ID: [u8; 4] = *b"mock";
 
 /// module id for the mock benchmarking module
-pub const MODULE_ID: ModuleId = ModuleId::Pallet(PalletId(*b"___mock_"));
+pub const MODULE_ID: ModuleId = ModuleId::Pallet(PalletId(*b"__mock__"));
 
 fn set_timestamp<T: pallet_timestamp::Config>(value: u64)
 where

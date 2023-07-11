@@ -23,6 +23,7 @@ extern crate alloc;
 use alloc::string::ToString;
 use frame_support::{traits::fungible::Mutate, PalletId};
 use ismp::{
+    contracts::Gas,
     error::Error as IsmpError,
     module::IsmpModule,
     router::{Post, Request, Response},
@@ -138,8 +139,8 @@ pub mod pallet {
             };
             let post = DispatchPost {
                 dest_chain: dest,
-                from: PALLET_ID.encode(),
-                to: PALLET_ID.encode(),
+                from: PALLET_ID.to_bytes(),
+                to: PALLET_ID.to_bytes(),
                 timeout_timestamp: params.timeout,
                 data: payload.encode(),
             };
@@ -175,7 +176,7 @@ pub mod pallet {
 
             let get = DispatchGet {
                 dest_chain,
-                from: PALLET_ID.encode(),
+                from: PALLET_ID.to_bytes(),
                 keys: params.keys,
                 height: params.height as u64,
                 timeout_timestamp: params.timeout,
@@ -247,7 +248,7 @@ impl<T: Config> Default for IsmpModuleCallback<T> {
 }
 
 impl<T: Config> IsmpModule for IsmpModuleCallback<T> {
-    fn on_accept(&self, request: Post) -> Result<(), IsmpError> {
+    fn on_accept(&self, request: Post) -> Result<Gas, IsmpError> {
         let source_chain = request.source_chain;
 
         let payload = <Payload<T::AccountId, <T as Config>::Balance> as codec::Decode>::decode(
@@ -264,10 +265,10 @@ impl<T: Config> IsmpModule for IsmpModuleCallback<T> {
             amount: payload.amount,
             source_chain,
         });
-        Ok(())
+        Ok(().into())
     }
 
-    fn on_response(&self, response: Response) -> Result<(), IsmpError> {
+    fn on_response(&self, response: Response) -> Result<Gas, IsmpError> {
         match response {
             Response::Post(_) => Err(IsmpError::ImplementationSpecific(
                 "Balance transfer protocol does not accept post responses".to_string(),
@@ -277,10 +278,10 @@ impl<T: Config> IsmpModule for IsmpModuleCallback<T> {
             )),
         };
 
-        Ok(())
+        Ok(().into())
     }
 
-    fn on_timeout(&self, request: Request) -> Result<(), IsmpError> {
+    fn on_timeout(&self, request: Request) -> Result<Gas, IsmpError> {
         let source_chain = request.source_chain();
         let data = match request {
             Request::Post(post) => post.data,
@@ -304,6 +305,6 @@ impl<T: Config> IsmpModule for IsmpModuleCallback<T> {
             amount: payload.amount,
             source_chain,
         });
-        Ok(())
+        Ok(().into())
     }
 }

@@ -19,7 +19,7 @@ use frame_support::{PalletId, RuntimeDebug};
 use ismp_primitives::mmr::{LeafIndex, NodeIndex};
 use ismp_rs::consensus::{ConsensusClient, ConsensusClientId};
 use scale_info::TypeInfo;
-use sp_core::{crypto::AccountId32, H160};
+use sp_core::{crypto::AccountId32, ByteArray, H160};
 use sp_std::prelude::*;
 
 /// The `ConsensusEngineId` of ISMP.
@@ -65,7 +65,7 @@ pub trait ConsensusClientProvider {
 }
 
 /// Module identification types supported by ismp
-#[derive(codec::Encode, codec::Decode, PartialEq, Eq, scale_info::TypeInfo)]
+#[derive(PartialEq, Eq, scale_info::TypeInfo)]
 pub enum ModuleId {
     /// Unique Pallet identification in runtime
     Pallet(PalletId),
@@ -73,4 +73,29 @@ pub enum ModuleId {
     Contract(AccountId32),
     /// Evm contract
     Evm(H160),
+}
+impl ModuleId {
+    /// Convert module id to raw bytes
+    pub fn to_bytes(&self) -> Vec<u8> {
+        match self {
+            ModuleId::Pallet(pallet_id) => pallet_id.0.to_vec(),
+            ModuleId::Contract(account_id) => account_id.to_raw_vec(),
+            ModuleId::Evm(account_id) => account_id.0.to_vec(),
+        }
+    }
+
+    /// Derive module id from raw bytes
+    pub fn from_bytes(bytes: &[u8]) -> Result<Self, &'static str> {
+        if bytes.len() == 8 {
+            let mut inner = [0u8; 8];
+            inner.copy_from_slice(bytes);
+            Ok(Self::Pallet(PalletId(inner)))
+        } else if bytes.len() == 32 {
+            Ok(Self::Contract(AccountId32::from_slice(bytes).expect("Infallible")))
+        } else if bytes.len() == 20 {
+            Ok(Self::Evm(H160::from_slice(bytes)))
+        } else {
+            Err("Unknown Module ID format")
+        }
+    }
 }
