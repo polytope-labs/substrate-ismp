@@ -48,7 +48,7 @@ where
                 exit_status: ExitError::Other(format!("Failed to decode input: {:?}", e).into()),
             })?;
         let post_dispatch = DispatchPost {
-            dest_chain: parse_state_machine(post_dispatch.dest)?,
+            dest: parse_state_machine(post_dispatch.dest)?,
             from: context.caller.0.to_vec(),
             to: post_dispatch.to,
             timeout_timestamp: u256_to_u64(post_dispatch.timeoutTimestamp)?,
@@ -90,7 +90,7 @@ where
                 exit_status: ExitError::Other(format!("Failed to decode input: {:?}", e).into()),
             })?;
         let get_dispatch = DispatchGet {
-            dest_chain: parse_state_machine(get_dispatch.dest)?,
+            dest: parse_state_machine(get_dispatch.dest)?,
             from: context.caller.0.to_vec(),
             keys: get_dispatch.keys,
             height: u256_to_u64(get_dispatch.height)?,
@@ -131,8 +131,8 @@ where
             })?;
         let post_response = PostResponse {
             post: Post {
-                source_chain: parse_state_machine(post_response.request.source)?,
-                dest_chain: parse_state_machine(post_response.request.dest)?,
+                source: parse_state_machine(post_response.request.source)?,
+                dest: parse_state_machine(post_response.request.dest)?,
                 nonce: u256_to_u64(post_response.request.nonce)?,
                 from: post_response.request.from,
                 to: post_response.request.to,
@@ -152,6 +152,7 @@ where
     }
 }
 
+/// Convert u256 to u64 with overflow check
 fn u256_to_u64(value: alloy_primitives::U256) -> Result<u64, PrecompileFailure> {
     let value = U256::from_big_endian(value.to_be_bytes::<32>().as_slice());
     for i in &value.0[1..] {
@@ -164,6 +165,7 @@ fn u256_to_u64(value: alloy_primitives::U256) -> Result<u64, PrecompileFailure> 
     Ok(value.as_u64())
 }
 
+/// Parse state machine from utf8 bytes
 fn parse_state_machine(bytes: Vec<u8>) -> Result<StateMachine, PrecompileFailure> {
     StateMachine::from_str(&String::from_utf8(bytes).unwrap_or_default()).map_err(|e| {
         PrecompileFailure::Error {

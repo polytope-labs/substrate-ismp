@@ -1,4 +1,4 @@
 //! EVM contract support
 mod abi;
 pub mod handler;
-pub mod ismp_dispatcher_precompile;
+pub mod ismp_dispatcher_precompiles;
